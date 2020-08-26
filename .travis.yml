@@ -1,0 +1,15 @@
+language: java
+jdk:
+  - openjdk11
+before install:
+  - chmod +x mvnw
+  - mysql -u root -e 'CREATE DATABASE task_tracker;'
+  - mysql -u root -e "CREATE USER 'nick'@'localhost' IDENTIFIED BY 'root';"
+  - mysql -u root -e "GRANT ALL ON task_tracker.* TO 'nick'@'localhost';"
+services:
+  - mysql
+script:
+  - mvn clean install
+cache:
+  directories:
+    - $HOME/.m2
