@@ -4,10 +4,7 @@ import javax.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class UserPutDto {
+public class UserGetRequestDto {
     @NotBlank(message = "Email can't be null or blank!")
-    private String currentEmail;
-    private String newEmail;
-    private String firstName;
-    private String lastName;
+    private String email;
 }

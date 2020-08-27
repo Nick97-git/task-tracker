@@ -35,10 +35,11 @@ public class AuthenticationControllerTest {
     private static final String REGISTRATION_ENDPOINT = "/registration";
     private static final String EMAIL_ERROR = "Email can't be null or blank!";
     private static final String FIRST_NAME_ERROR = "First name can't be null or blank!";
-    private static final String INCORRECT_CREDENTIALS_ERROR = "Incorrect username or password!!!";
+    private static final String INCORRECT_EMAIL = "There is no such user with email: %s!";
     private static final String LAST_NAME_ERROR = "Last name can't be null or blank!";
     private static final String PASSWORDS_DONT_MATCH_ERROR = "Passwords don't match!";
     private static final String PASSWORD_ERROR = "Password can't be null or blank!";
+    private static final String AUTHENTICATION_ERROR = "Incorrect username or password!";
     private static final ResultMatcher STATUS_200 = MockMvcResultMatchers.status().isOk();
     private static final ResultMatcher STATUS_400 = MockMvcResultMatchers.status().isBadRequest();
     private UserRegistrationDto userRegistrationDto;
@@ -120,12 +121,22 @@ public class AuthenticationControllerTest {
 
     @SneakyThrows
     @Test
-    public void checkIncorrectCredentials() {
+    public void checkIncorrectEmail() {
         userLoginDto.setEmail("wrongEmail");
         Map<String,Object> map = getMap(STATUS_400,
                 userLoginDto, LOGIN_ENDPOINT);
         String message = (String) map.get("error");
-        Assertions.assertEquals(INCORRECT_CREDENTIALS_ERROR, message);
+        Assertions.assertEquals(String.format(INCORRECT_EMAIL,
+                userLoginDto.getEmail()), message);
+    }
+
+    @Test
+    public void checkIncorrectPassword() {
+        userLoginDto.setPassword("wrong password");
+        Map<String,Object> map = getMap(STATUS_400,
+                userLoginDto, LOGIN_ENDPOINT);
+        String message = (String) map.get("error");
+        Assertions.assertEquals(AUTHENTICATION_ERROR, message);
     }
 
     @Test

@@ -1,6 +1,8 @@
 package com.dev.tracker.controller;
 
 import com.dev.tracker.exception.AuthenticationException;
+import com.dev.tracker.exception.NoSuchUserException;
+import com.dev.tracker.exception.TaskStatusException;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,6 +40,18 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Object> handleAuthenticationException(
             AuthenticationException exception) {
+        return getResponseEntity(exception.getMessage());
+    }
+
+    @ExceptionHandler(TaskStatusException.class)
+    public ResponseEntity<Object> handleTaskStatusException(
+            TaskStatusException exception) {
+        return getResponseEntity(exception.getMessage());
+    }
+
+    @ExceptionHandler(NoSuchUserException.class)
+    public ResponseEntity<Object> handleNoSuchUserException(
+            NoSuchUserException exception) {
         return getResponseEntity(exception.getMessage());
     }
 

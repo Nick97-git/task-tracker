@@ -30,9 +30,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @SneakyThrows
     public User login(String email, String password) {
         User user = userService.findByEmail(email);
-        String encodedPassword = passwordEncoder.encode(password);
-        if (user == null || user.getPassword().equals(encodedPassword)) {
-            throw new AuthenticationException("Incorrect username or password!!!");
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new AuthenticationException("Incorrect username or password!");
         }
         return user;
     }
