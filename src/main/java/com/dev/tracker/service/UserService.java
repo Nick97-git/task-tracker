@@ -9,7 +9,7 @@ public interface UserService {
 
     User findByEmail(String email);
 
-    void deleteByEmail(String email);
+    void deleteByEmail(String email, User user);
 
     List<User> getUsers(int offset, int limit);
 }

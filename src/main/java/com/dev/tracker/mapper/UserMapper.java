@@ -6,7 +6,7 @@ import com.dev.tracker.model.dto.user.UserGetResponseDto;
 import com.dev.tracker.model.dto.user.UserPutDto;
 import com.dev.tracker.model.dto.user.UserRegistrationDto;
 import com.dev.tracker.model.dto.user.UserResponseDto;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -34,14 +34,10 @@ public class UserMapper {
     }
 
     public User convertUserPutDtoToUser(User user, UserPutDto userPutDto) {
-        user.setEmail(getValue(user.getEmail(), userPutDto.getNewEmail()));
-        user.setFirstName(getValue(user.getFirstName(), userPutDto.getFirstName()));
-        user.setLastName(getValue(user.getLastName(), userPutDto.getLastName()));
+        user.setEmail(getData(user.getEmail(), userPutDto.getNewEmail()));
+        user.setFirstName(getData(user.getFirstName(), userPutDto.getFirstName()));
+        user.setLastName(getData(user.getLastName(), userPutDto.getLastName()));
         return user;
-    }
-
-    private String getValue(String currentData, String newData) {
-        return newData != null ? newData : currentData;
     }
 
     public UserGetResponseDto convertUserToUserGetResponseDto(User user) {
@@ -49,10 +45,17 @@ public class UserMapper {
         userGetResponseDto.setEmail(user.getEmail());
         userGetResponseDto.setFirstName(user.getFirstName());
         userGetResponseDto.setLastName(user.getLastName());
-        List<TaskGetResponseDto> tasks = user.getTasks().stream()
-                .map(taskMapper::convertTaskToTaskGetResponseDto)
-                .collect(Collectors.toList());
-        userGetResponseDto.setTasks(tasks);
+        userGetResponseDto.setTasks(getTasks(user));
         return userGetResponseDto;
+    }
+
+    private String getData(String oldData, String newData) {
+        return newData != null ? newData : oldData;
+    }
+
+    private Set<TaskGetResponseDto> getTasks(User user) {
+        return user.getTasks().stream()
+                .map(taskMapper::convertTaskToTaskGetResponseDto)
+                .collect(Collectors.toSet());
     }
 }

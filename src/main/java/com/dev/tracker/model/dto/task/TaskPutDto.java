@@ -7,8 +7,8 @@ import lombok.Data;
 public class TaskPutDto {
     @NotBlank(message = "Title can't be null or blank!")
     private String currentTitle;
-    @NotBlank(message = "User email can't be null or blank!")
-    private String userEmail;
+    @NotBlank(message = "Email can't be null or blank!")
+    private String email;
     private String newTitle;
     private String newDescription;
     private String newStatus;

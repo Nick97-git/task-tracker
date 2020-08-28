@@ -11,7 +11,7 @@ public interface TaskService {
 
     void deleteByTitleAndUserId(String title, User user);
 
-    Task findByTitleAndUser(String title, User user);
+    Task findByTitleAndUserEmail(String title, String email);
 
     List<Task> getTasks(TaskStatus status);
 }

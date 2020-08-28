@@ -4,9 +4,9 @@ import com.dev.tracker.exception.TaskStatusException;
 import com.dev.tracker.model.Task;
 import com.dev.tracker.model.TaskStatus;
 import com.dev.tracker.model.User;
-import com.dev.tracker.model.dto.TaskPutResponseDto;
-import com.dev.tracker.model.dto.task.TaskCreationDto;
+import com.dev.tracker.model.dto.task.TaskPostDto;
 import com.dev.tracker.model.dto.task.TaskPutDto;
+import com.dev.tracker.model.dto.task.TaskPutResponseDto;
 import com.dev.tracker.model.dto.task.TaskResponseDto;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 public class TaskMapperTest {
     private TaskMapper taskMapper;
     private Task task;
-    private TaskCreationDto taskCreationDto;
+    private TaskPostDto taskPostDto;
     private TaskPutDto taskPutDto;
 
     @BeforeEach
@@ -38,16 +38,16 @@ public class TaskMapperTest {
         expected.setDescription("Description");
         expected.setTitle("Title");
         User userForCreation = new User();
-        userForCreation.setEmail(taskCreationDto.getUserEmail());
-        Task actual = taskMapper.convertTaskCreationDtoToTask(taskCreationDto, userForCreation);
+        userForCreation.setEmail(taskPostDto.getEmail());
+        Task actual = taskMapper.convertTaskCreationDtoToTask(taskPostDto, userForCreation);
         Assertions.assertEquals(expected, actual);
     }
 
     @Test
     public void checkConvertToTaskWithWrongStatus() {
-        taskCreationDto.setStatus("status");
+        taskPostDto.setStatus("status");
         Assertions.assertThrows(TaskStatusException.class,
-                () -> taskMapper.convertTaskCreationDtoToTask(taskCreationDto, null));
+                () -> taskMapper.convertTaskCreationDtoToTask(taskPostDto, null));
     }
 
     @Test
@@ -55,7 +55,7 @@ public class TaskMapperTest {
         TaskResponseDto expected = new TaskResponseDto();
         expected.setStatus(TaskStatus.DONE.getName());
         expected.setTitle("Title");
-        expected.setUserEmail("Email");
+        expected.setEmail("Email");
         TaskResponseDto actual = taskMapper.convertTaskToTaskResponseDto(task);
         Assertions.assertEquals(expected, actual);
     }
@@ -84,7 +84,7 @@ public class TaskMapperTest {
         TaskPutResponseDto expected = new TaskPutResponseDto();
         expected.setTitle("Title");
         expected.setStatus(TaskStatus.DONE.getName());
-        expected.setUserEmail("Email");
+        expected.setEmail("Email");
         TaskPutResponseDto actual = taskMapper
                 .convertTaskToTaskPutResponseDto(task);
         Assertions.assertEquals(expected, actual);
@@ -98,11 +98,11 @@ public class TaskMapperTest {
     }
 
     private void setTaskCreationDto() {
-        taskCreationDto = new TaskCreationDto();
-        taskCreationDto.setUserEmail("Email");
-        taskCreationDto.setStatus("Done");
-        taskCreationDto.setDescription("Description");
-        taskCreationDto.setTitle("Title");
+        taskPostDto = new TaskPostDto();
+        taskPostDto.setEmail("Email");
+        taskPostDto.setStatus("Done");
+        taskPostDto.setDescription("Description");
+        taskPostDto.setTitle("Title");
     }
 
     private void setTask() {

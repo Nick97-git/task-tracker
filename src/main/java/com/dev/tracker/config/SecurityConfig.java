@@ -32,12 +32,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf()
                 .disable()
                 .authorizeRequests()
-                .antMatchers("/tasks/**", "/users/**").hasAnyRole("USER")
+                .antMatchers("/tasks/**", "/users/**")
+                .hasAnyRole("USER", "ADMIN")
                 .antMatchers("/registration", "/login", "/swagger-resources/**",
                         "/swagger-ui.html",
                         "/v2/api-docs",
                         "/webjars/**",
-                        "/h2/**", "/_ah/start")
+                        "/h2")
                 .permitAll()
                 .anyRequest()
                 .authenticated()

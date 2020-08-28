@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
-    private final UserMapper userMapper;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserMapper userMapper;
 
     @PostMapping("/registration")
     public UserResponseDto register(@RequestBody @Valid UserRegistrationDto userRegistrationDto) {

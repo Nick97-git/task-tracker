@@ -6,5 +6,5 @@ import lombok.Data;
 public class TaskResponseDto {
     String title;
     String status;
-    String userEmail;
+    String email;
 }

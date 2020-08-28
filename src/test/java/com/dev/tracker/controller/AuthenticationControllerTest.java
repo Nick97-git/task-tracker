@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,20 +31,18 @@ import org.springframework.web.util.NestedServletException;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class AuthenticationControllerTest {
     private static final String LOGIN_ENDPOINT = "/login";
     private static final String REGISTRATION_ENDPOINT = "/registration";
-    private static final String EMAIL_ERROR = "Email can't be null or blank!";
-    private static final String FIRST_NAME_ERROR = "First name can't be null or blank!";
+    private static final String FIELD_ERROR = "%s can't be null or blank!";
     private static final String INCORRECT_EMAIL = "There is no such user with email: %s!";
-    private static final String LAST_NAME_ERROR = "Last name can't be null or blank!";
     private static final String PASSWORDS_DONT_MATCH_ERROR = "Passwords don't match!";
-    private static final String PASSWORD_ERROR = "Password can't be null or blank!";
     private static final String AUTHENTICATION_ERROR = "Incorrect username or password!";
     private static final ResultMatcher STATUS_200 = MockMvcResultMatchers.status().isOk();
     private static final ResultMatcher STATUS_400 = MockMvcResultMatchers.status().isBadRequest();
-    private UserRegistrationDto userRegistrationDto;
     private UserLoginDto userLoginDto;
+    private UserRegistrationDto userRegistrationDto;
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -80,9 +79,9 @@ public class AuthenticationControllerTest {
         userRegistrationDto.setFirstName(null);
         userRegistrationDto.setLastName(null);
         List<String> errors = getErrors();
-        Assertions.assertTrue(errors.contains(EMAIL_ERROR));
-        Assertions.assertTrue(errors.contains(FIRST_NAME_ERROR));
-        Assertions.assertTrue(errors.contains(LAST_NAME_ERROR));
+        Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Email")));
+        Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "First name")));
+        Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Last name")));
     }
 
     @SneakyThrows
@@ -113,7 +112,7 @@ public class AuthenticationControllerTest {
     @SneakyThrows
     @Test
     public void checkLoginSuccessful() {
-        Map<String,Object> map = getMap(STATUS_200,
+        Map<String,Object> map = getResponse(STATUS_200,
                 userLoginDto, LOGIN_ENDPOINT);
         String token = (String) map.get("token");
         Assertions.assertFalse(token.isEmpty());
@@ -123,7 +122,7 @@ public class AuthenticationControllerTest {
     @Test
     public void checkIncorrectEmail() {
         userLoginDto.setEmail("wrongEmail");
-        Map<String,Object> map = getMap(STATUS_400,
+        Map<String,Object> map = getResponse(STATUS_400,
                 userLoginDto, LOGIN_ENDPOINT);
         String message = (String) map.get("error");
         Assertions.assertEquals(String.format(INCORRECT_EMAIL,
@@ -133,7 +132,7 @@ public class AuthenticationControllerTest {
     @Test
     public void checkIncorrectPassword() {
         userLoginDto.setPassword("wrong password");
-        Map<String,Object> map = getMap(STATUS_400,
+        Map<String,Object> map = getResponse(STATUS_400,
                 userLoginDto, LOGIN_ENDPOINT);
         String message = (String) map.get("error");
         Assertions.assertEquals(AUTHENTICATION_ERROR, message);
@@ -143,22 +142,22 @@ public class AuthenticationControllerTest {
     public void checkIncorrectLoginData() {
         userLoginDto.setEmail("");
         userLoginDto.setPassword(null);
-        Map<String,Object> map = getMap(STATUS_400,
+        Map<String,Object> map = getResponse(STATUS_400,
                 userLoginDto, LOGIN_ENDPOINT);
         List<String> errors = (ArrayList<String>) map.get("errors");
-        Assertions.assertTrue(errors.contains(EMAIL_ERROR));
-        Assertions.assertTrue(errors.contains(PASSWORD_ERROR));
+        Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Email")));
+        Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Password")));
     }
 
     @SneakyThrows
     private List<String> getErrors() {
-        Map<String,Object> map = getMap(STATUS_400,
+        Map<String,Object> map = getResponse(STATUS_400,
                 userRegistrationDto, REGISTRATION_ENDPOINT);
         return ((ArrayList<String>) map.get("errors"));
     }
 
     @SneakyThrows
-    private Map<String, Object> getMap(ResultMatcher status, Object object, String endpoint) {
+    private Map<String, Object> getResponse(ResultMatcher status, Object object, String endpoint) {
         String json = objectMapper.writeValueAsString(object);
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post(endpoint)
                 .content(json)

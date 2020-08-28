@@ -5,7 +5,7 @@ public enum TaskStatus {
 
     private final String name;
 
-    private TaskStatus(String name) {
+    TaskStatus(String name) {
         this.name = name;
     }
 

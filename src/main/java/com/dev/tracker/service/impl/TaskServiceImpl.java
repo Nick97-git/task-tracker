@@ -27,8 +27,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Task findByTitleAndUser(String title, User user) {
-        return taskRepository.findByTitleAndUser(title, user);
+    public Task findByTitleAndUserEmail(String title, String email) {
+        return taskRepository.findByTitleAndUserEmail(title, email);
     }
 
     @Override

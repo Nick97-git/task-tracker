@@ -1,9 +1,7 @@
 package com.dev.tracker.config;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import javax.servlet.ServletContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.PathSelectors;
@@ -20,9 +18,9 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 public class SwaggerConfig {
 
     @Bean
-    public Docket api(ServletContext servletContext) {
+    public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
-                .securitySchemes(Arrays.asList(apiKey()))
+                .securitySchemes(List.of(apiKey()))
                 .securityContexts(Collections.singletonList(securityContext()));
     }
 

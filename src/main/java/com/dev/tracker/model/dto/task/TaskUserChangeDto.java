@@ -8,7 +8,7 @@ public class TaskUserChangeDto {
     @NotBlank(message = "Title can't be null or blank!")
     private String title;
     @NotBlank(message = "Email can't be null or blank!")
-    private String currentEmail;
+    private String email;
     @NotBlank(message = "New email can't be null or blank!")
     private String newEmail;
 }

@@ -8,7 +8,7 @@ import com.dev.tracker.model.dto.user.UserGetResponseDto;
 import com.dev.tracker.model.dto.user.UserPutDto;
 import com.dev.tracker.model.dto.user.UserRegistrationDto;
 import com.dev.tracker.model.dto.user.UserResponseDto;
-import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,11 +63,11 @@ public class UserMapperTest {
     public void checkConvertUserToUserGetResponseDtoIsOk() {
         Task firstTask = new Task();
         firstTask.setTitle("title");
-        firstTask.setStatus(TaskStatus.DONE);
+        firstTask.setStatus(TaskStatus.VIEW);
         Task secondTask = new Task();
         secondTask.setTitle("title");
-        secondTask.setStatus(TaskStatus.VIEW);
-        List<Task> tasks = List.of(firstTask, secondTask);
+        secondTask.setStatus(TaskStatus.DONE);
+        Set<Task> tasks = Set.of(firstTask, secondTask);
         user.setTasks(tasks);
         UserGetResponseDto expected = new UserGetResponseDto();
         expected.setEmail("email");
@@ -75,11 +75,11 @@ public class UserMapperTest {
         expected.setLastName("last");
         TaskGetResponseDto firstTaskGetResponseDto = new TaskGetResponseDto();
         firstTaskGetResponseDto.setTitle("title");
-        firstTaskGetResponseDto.setStatus(TaskStatus.DONE.getName());
+        firstTaskGetResponseDto.setStatus(TaskStatus.VIEW.getName());
         TaskGetResponseDto secondTaskGetResponseDto = new TaskGetResponseDto();
         secondTaskGetResponseDto.setTitle("title");
-        secondTaskGetResponseDto.setStatus(TaskStatus.VIEW.getName());
-        expected.setTasks(List.of(firstTaskGetResponseDto, secondTaskGetResponseDto));
+        secondTaskGetResponseDto.setStatus(TaskStatus.DONE.getName());
+        expected.setTasks(Set.of(firstTaskGetResponseDto, secondTaskGetResponseDto));
         UserGetResponseDto actual = userMapper.convertUserToUserGetResponseDto(user);
         Assertions.assertEquals(expected, actual);
     }
@@ -108,7 +108,7 @@ public class UserMapperTest {
 
     private void setUserPutDto() {
         userPutDto = new UserPutDto();
-        userPutDto.setCurrentEmail("email");
+        userPutDto.setEmail("email");
         userPutDto.setNewEmail("newEmail");
     }
 
