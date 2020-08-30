@@ -27,8 +27,7 @@ public class AuthenticationController {
     @PostMapping("/registration")
     public UserResponseDto register(@RequestBody @Valid UserRegistrationDto userRegistrationDto) {
         User user = userMapper.convertUserRegistrationDtoToUser(userRegistrationDto);
-        User registeredUser = authenticationService.register(user);
-        return userMapper.convertUserToResponseDto(registeredUser);
+        return userMapper.convertUserToUserResponseDto(authenticationService.register(user));
     }
 
     @PostMapping("/login")

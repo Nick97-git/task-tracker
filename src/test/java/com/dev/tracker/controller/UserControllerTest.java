@@ -1,10 +1,10 @@
 package com.dev.tracker.controller;
 
 import com.dev.tracker.model.dto.user.UserDeleteDto;
-import com.dev.tracker.model.dto.user.UserGetRequestDto;
+import com.dev.tracker.model.dto.user.UserGetDto;
 import com.dev.tracker.model.dto.user.UserGetResponseDto;
-import com.dev.tracker.model.dto.user.UserPutDto;
 import com.dev.tracker.model.dto.user.UserResponseDto;
+import com.dev.tracker.model.dto.user.UserUpdateDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
@@ -38,15 +38,13 @@ import org.springframework.web.util.NestedServletException;
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class UserControllerTest {
-    private static final String USERS_ENDPOINT = "/users";
-    private static final String EMAIL_ERROR = "Email can't be null or blank!";
-    private static final ResultMatcher STATUS_200 = MockMvcResultMatchers.status().isOk();
-    private static final ResultMatcher STATUS_400 = MockMvcResultMatchers.status().isBadRequest();
     private static final String GET_USER_ENDPOINT = "/users/user";
+    private static final String USERS_ENDPOINT = "/users";
     private static final String DELETE_USER_ERROR = "You have no right to delete this user!";
+    private static final String EMAIL_ERROR = "Email can't be null or blank!";
     private UserDeleteDto userDeleteDto;
-    private UserPutDto userPutDto;
-    private UserGetRequestDto userGetRequestDto;
+    private UserGetDto userGetDto;
+    private UserUpdateDto userUpdateDto;
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -55,25 +53,26 @@ public class UserControllerTest {
     @BeforeEach
     public void setUp() {
         setUserDeleteDto();
-        setUserPutDto();
-        setUserGetRequestDto();
+        setUserGetDto();
+        setUserUpdateDto();
     }
 
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = {"USER","ADMIN"})
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = {"USER","ADMIN"})
     public void checkDeleteUserIsOk() {
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .delete(USERS_ENDPOINT);
-        getResponse(STATUS_200, userDeleteDto, builder);
+        getContent(MockMvcResultMatchers.status().isOk(), userDeleteDto, builder);
     }
 
     @SneakyThrows
     @Test
-    @WithMockUser(username = "email15", password = "1234", roles = "USER")
+    @WithMockUser(username = "email15@ukr.net", password = "1234", roles = "USER")
     public void checkDeleteOtherUserWithoutAdminRole() {
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .delete(USERS_ENDPOINT);
-        String content = getResponse(STATUS_400, userDeleteDto, builder);
+        String content = getContent(MockMvcResultMatchers.status().isBadRequest(),
+                userDeleteDto, builder);
         Map<String, Object> map = objectMapper.readValue(content,
                 new TypeReference<HashMap<String, Object>>() {
                 });
@@ -82,7 +81,7 @@ public class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
     public void checkIncorrectDeleteUserData() {
         userDeleteDto.setEmail("");
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
@@ -93,11 +92,11 @@ public class UserControllerTest {
 
     @SneakyThrows
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
     public void checkUpdateUserIsOk() {
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .put(USERS_ENDPOINT);
-        String content = getResponse(STATUS_200, userPutDto, builder);
+        String content = getContent(MockMvcResultMatchers.status().isOk(), userUpdateDto, builder);
         UserResponseDto expected = new UserResponseDto();
         expected.setEmail("new email");
         expected.setFirstName("first");
@@ -107,22 +106,23 @@ public class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
     public void checkIncorrectUpdateUserData() {
-        userPutDto.setEmail("");
+        userUpdateDto.setEmail("");
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .put(USERS_ENDPOINT);
-        List<String> errors = getErrors(userPutDto, builder);
+        List<String> errors = getErrors(userUpdateDto, builder);
         Assertions.assertTrue(errors.contains(EMAIL_ERROR));
     }
 
     @SneakyThrows
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
-    public void checkGetUserDataIsOk() {
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
+    public void getUserData() {
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .get(GET_USER_ENDPOINT);
-        String content = getResponse(STATUS_200, userGetRequestDto, builder);
+        String content = getContent(MockMvcResultMatchers.status().isOk(),
+                userGetDto, builder);
         UserGetResponseDto userGetResponseDto = objectMapper
                 .readValue(content, UserGetResponseDto.class);
         Assertions.assertEquals(20, userGetResponseDto.getTasks().size());
@@ -131,18 +131,18 @@ public class UserControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
     public void checkIncorrectGetUserData() {
-        userGetRequestDto.setEmail("");
+        userGetDto.setEmail("");
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .get(GET_USER_ENDPOINT);
-        List<String> errors = getErrors(userGetRequestDto, builder);
+        List<String> errors = getErrors(userGetDto, builder);
         Assertions.assertTrue(errors.contains(EMAIL_ERROR));
     }
 
     @SneakyThrows
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
     public void checkGetUsersIsOk() {
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders
                 .get(USERS_ENDPOINT)
@@ -150,19 +150,19 @@ public class UserControllerTest {
                 .param("limit", "10")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
-                .andExpect(STATUS_200)
+                .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn();
         String content = result.getResponse().getContentAsString();
         List<UserResponseDto> users = objectMapper.readValue(content,
                 new TypeReference<>() {});
         Assertions.assertEquals(10, users.size());
-        Assertions.assertEquals("email10", users.get(0).getEmail());
-        Assertions.assertEquals("email19",
+        Assertions.assertEquals("email10@ukr.net", users.get(0).getEmail());
+        Assertions.assertEquals("email19@ukr.net",
                 users.get(users.size() - 1).getEmail());
     }
 
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
     public void checkIncorrectLimitAndOffsetForGetUsers() {
         makeGetUsersRequest("0", "11");
         makeGetUsersRequest("0", "0");
@@ -184,7 +184,7 @@ public class UserControllerTest {
     @SneakyThrows
     private List<String> getErrors(Object object,
                                    MockHttpServletRequestBuilder builder) {
-        String content = getResponse(STATUS_400,
+        String content = getContent(MockMvcResultMatchers.status().isBadRequest(),
                 object, builder);
         Map<String, Object> map = objectMapper.readValue(content,
                 new TypeReference<HashMap<String, Object>>() {
@@ -193,8 +193,8 @@ public class UserControllerTest {
     }
 
     @SneakyThrows
-    private String getResponse(ResultMatcher status, Object object,
-                               MockHttpServletRequestBuilder builder) {
+    private String getContent(ResultMatcher status, Object object,
+                              MockHttpServletRequestBuilder builder) {
         String json = objectMapper.writeValueAsString(object);
         MvcResult result = mockMvc.perform(builder
                 .content(json)
@@ -205,20 +205,20 @@ public class UserControllerTest {
         return result.getResponse().getContentAsString();
     }
 
-    private void setUserGetRequestDto() {
-        userGetRequestDto = new UserGetRequestDto();
-        userGetRequestDto.setEmail("email");
+    private void setUserGetDto() {
+        userGetDto = new UserGetDto();
+        userGetDto.setEmail("email@ukr.net");
     }
 
-    private void setUserPutDto() {
-        userPutDto = new UserPutDto();
-        userPutDto.setEmail("email3");
-        userPutDto.setNewEmail("new email");
-        userPutDto.setLastName("new last name");
+    private void setUserUpdateDto() {
+        userUpdateDto = new UserUpdateDto();
+        userUpdateDto.setEmail("email3@ukr.net");
+        userUpdateDto.setNewEmail("new email");
+        userUpdateDto.setLastName("new last name");
     }
 
     private void setUserDeleteDto() {
         userDeleteDto = new UserDeleteDto();
-        userDeleteDto.setEmail("email2");
+        userDeleteDto.setEmail("email2@ukr.net");
     }
 }

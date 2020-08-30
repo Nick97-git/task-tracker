@@ -3,10 +3,10 @@ package com.dev.tracker.controller;
 import com.dev.tracker.mapper.UserMapper;
 import com.dev.tracker.model.User;
 import com.dev.tracker.model.dto.user.UserDeleteDto;
-import com.dev.tracker.model.dto.user.UserGetRequestDto;
+import com.dev.tracker.model.dto.user.UserGetDto;
 import com.dev.tracker.model.dto.user.UserGetResponseDto;
-import com.dev.tracker.model.dto.user.UserPutDto;
 import com.dev.tracker.model.dto.user.UserResponseDto;
+import com.dev.tracker.model.dto.user.UserUpdateDto;
 import com.dev.tracker.service.UserService;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,25 +33,26 @@ public class UserController {
     private final UserMapper userMapper;
 
     @GetMapping
-    public List<UserResponseDto> getUsers(@RequestParam @Min(0) int offset,
-                                             @RequestParam @Min(1) @Max(10) int limit) {
+    public List<UserResponseDto> getUsers(@RequestParam(defaultValue = "0") @Min(0) int offset,
+                                             @RequestParam(defaultValue = "1")
+                                             @Min(1) @Max(10) int limit) {
         List<User> users = userService.getUsers(offset, limit);
         return users.stream()
-                .map(userMapper::convertUserToResponseDto)
+                .map(userMapper::convertUserToUserResponseDto)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/user")
-    public UserGetResponseDto getUser(@RequestBody @Valid UserGetRequestDto userGetRequestDto) {
-        User user = userService.findByEmail(userGetRequestDto.getEmail());
+    public UserGetResponseDto getUser(@RequestBody @Valid UserGetDto userGetDto) {
+        User user = userService.findByEmail(userGetDto.getEmail());
         return userMapper.convertUserToUserGetResponseDto(user);
     }
 
     @PutMapping
-    public UserResponseDto updateUser(@RequestBody @Valid UserPutDto userPutDto) {
-        User user = userService.findByEmail(userPutDto.getEmail());
-        User updatedUser = userMapper.convertUserPutDtoToUser(user, userPutDto);
-        return userMapper.convertUserToResponseDto(userService.save(updatedUser));
+    public UserResponseDto updateUser(@RequestBody @Valid UserUpdateDto userUpdateDto) {
+        User user = userService.findByEmail(userUpdateDto.getEmail());
+        User updatedUser = userMapper.convertUserPutDtoToUser(user, userUpdateDto);
+        return userMapper.convertUserToUserResponseDto(userService.save(updatedUser));
     }
 
     @DeleteMapping

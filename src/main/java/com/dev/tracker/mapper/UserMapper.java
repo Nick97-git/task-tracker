@@ -3,9 +3,9 @@ package com.dev.tracker.mapper;
 import com.dev.tracker.model.User;
 import com.dev.tracker.model.dto.task.TaskGetResponseDto;
 import com.dev.tracker.model.dto.user.UserGetResponseDto;
-import com.dev.tracker.model.dto.user.UserPutDto;
 import com.dev.tracker.model.dto.user.UserRegistrationDto;
 import com.dev.tracker.model.dto.user.UserResponseDto;
+import com.dev.tracker.model.dto.user.UserUpdateDto;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -25,7 +25,7 @@ public class UserMapper {
         return user;
     }
 
-    public UserResponseDto convertUserToResponseDto(User user) {
+    public UserResponseDto convertUserToUserResponseDto(User user) {
         UserResponseDto userResponseDto = new UserResponseDto();
         userResponseDto.setEmail(user.getEmail());
         userResponseDto.setFirstName(user.getFirstName());
@@ -33,10 +33,10 @@ public class UserMapper {
         return userResponseDto;
     }
 
-    public User convertUserPutDtoToUser(User user, UserPutDto userPutDto) {
-        user.setEmail(getData(user.getEmail(), userPutDto.getNewEmail()));
-        user.setFirstName(getData(user.getFirstName(), userPutDto.getFirstName()));
-        user.setLastName(getData(user.getLastName(), userPutDto.getLastName()));
+    public User convertUserPutDtoToUser(User user, UserUpdateDto userUpdateDto) {
+        user.setEmail(getValue(user.getEmail(), userUpdateDto.getNewEmail()));
+        user.setFirstName(getValue(user.getFirstName(), userUpdateDto.getFirstName()));
+        user.setLastName(getValue(user.getLastName(), userUpdateDto.getLastName()));
         return user;
     }
 
@@ -49,8 +49,8 @@ public class UserMapper {
         return userGetResponseDto;
     }
 
-    private String getData(String oldData, String newData) {
-        return newData != null ? newData : oldData;
+    private String getValue(String currentValue, String newValue) {
+        return newValue != null ? newValue : currentValue;
     }
 
     private Set<TaskGetResponseDto> getTasks(User user) {

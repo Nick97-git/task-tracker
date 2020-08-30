@@ -1,14 +1,14 @@
 package com.dev.tracker.controller;
 
+import com.dev.tracker.model.dto.task.TaskCreateDto;
 import com.dev.tracker.model.dto.task.TaskDeleteDto;
-import com.dev.tracker.model.dto.task.TaskGetRequestDto;
+import com.dev.tracker.model.dto.task.TaskGetDto;
 import com.dev.tracker.model.dto.task.TaskGetResponseDto;
-import com.dev.tracker.model.dto.task.TaskPostDto;
-import com.dev.tracker.model.dto.task.TaskPutDto;
-import com.dev.tracker.model.dto.task.TaskPutResponseDto;
 import com.dev.tracker.model.dto.task.TaskResponseDto;
-import com.dev.tracker.model.dto.task.TaskStatusChangeDto;
-import com.dev.tracker.model.dto.task.TaskUserChangeDto;
+import com.dev.tracker.model.dto.task.TaskUpdateDto;
+import com.dev.tracker.model.dto.task.TaskUpdateResponseDto;
+import com.dev.tracker.model.dto.task.TaskUpdateStatusDto;
+import com.dev.tracker.model.dto.task.TaskUpdateUserDto;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
@@ -41,19 +41,17 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class TaskControllerTest {
-    private static final String TASKS_ENDPOINT = "/tasks";
     private static final String CHANGE_TASK_STATUS_ENDPOINT = "/tasks/status";
     private static final String CHANGE_TASK_USER_ENDPOINT = "/tasks/user";
+    private static final String TASKS_ENDPOINT = "/tasks";
     private static final String FIELD_ERROR = "%s can't be null or blank!";
     private static final String NO_SUCH_USER_ERROR = "There is no such user with email: %s!";
-    private static final ResultMatcher STATUS_200 = MockMvcResultMatchers.status().isOk();
-    private static final ResultMatcher STATUS_400 = MockMvcResultMatchers.status().isBadRequest();
-    private TaskPostDto taskPostDto;
-    private TaskStatusChangeDto taskStatusChangeDto;
-    private TaskUserChangeDto taskUserChangeDto;
-    private TaskPutDto taskPutDto;
-    private TaskGetRequestDto taskGetRequestDto;
     private TaskDeleteDto taskDeleteDto;
+    private TaskGetDto taskGetDto;
+    private TaskCreateDto taskCreateDto;
+    private TaskUpdateDto taskUpdateDto;
+    private TaskUpdateStatusDto taskUpdateStatusDto;
+    private TaskUpdateUserDto taskUpdateUserDto;
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -61,58 +59,53 @@ public class TaskControllerTest {
 
     @BeforeEach
     public void setUp() {
-        setTaskCreationDto();
-        setTaskStatusChangeDto();
-        setTaskUserChangeDto();
-        setTaskPutDto();
-        setTaskGetRequestDto();
         setTaskDeleteDto();
-    }
-
-    private void setTaskDeleteDto() {
-        taskDeleteDto = new TaskDeleteDto();
-        taskDeleteDto.setTitle("title5");
-        taskDeleteDto.setEmail("email");
+        setTaskGetDto();
+        setTaskPostDto();
+        setTaskPutDto();
+        setTaskUpdateStatusDto();
+        setTaskUpdateUserDto();
     }
 
     @SneakyThrows
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
-    public void checkCreationOfTaskIsOk() {
-        String json = objectMapper.writeValueAsString(taskPostDto);
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
+    public void checkCreateTaskIsOk() {
+        String json = objectMapper.writeValueAsString(taskCreateDto);
         mockMvc.perform(MockMvcRequestBuilders.post(TASKS_ENDPOINT)
                 .content(json)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(STATUS_200)
+                .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn();
     }
 
     @SneakyThrows
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
-    public void checkCreationOfTaskWithNotExistentUser() {
-        taskPostDto.setEmail("wrongEmail");
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
+    public void checkCreateTaskWithNotExistentUser() {
+        taskCreateDto.setEmail("wrong email");
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .post(TASKS_ENDPOINT);
-        String content = getResponse(STATUS_400, taskPostDto, builder);
+        String content = getContent(MockMvcResultMatchers.status().isBadRequest(),
+                taskCreateDto, builder);
         Map<String,Object> map = objectMapper.readValue(content,
                 new TypeReference<HashMap<String, Object>>(){});
         String errorMessage = (String) map.get("error");
         Assertions.assertEquals(errorMessage, String.format(NO_SUCH_USER_ERROR,
-                taskPostDto.getEmail()));
+                taskCreateDto.getEmail()));
     }
 
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
-    public void checkIncorrectCreationTaskData() {
-        taskPostDto.setEmail(null);
-        taskPostDto.setStatus(null);
-        taskPostDto.setDescription("");
-        taskPostDto.setTitle("");
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
+    public void checkIncorrectCreateTaskData() {
+        taskCreateDto.setEmail(null);
+        taskCreateDto.setStatus(null);
+        taskCreateDto.setDescription("");
+        taskCreateDto.setTitle("");
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .post(TASKS_ENDPOINT);
-        List<String> errors = getErrors(taskPostDto, builder);
+        List<String> errors = getErrors(taskCreateDto, builder);
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Email")));
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Status")));
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Title")));
@@ -121,14 +114,14 @@ public class TaskControllerTest {
 
     @SneakyThrows
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
-    public void checkTaskStatusChangeIsOk() {
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
+    public void checkUpdateTaskStatusIsOk() {
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .put(CHANGE_TASK_STATUS_ENDPOINT);
-        String content = getResponse(STATUS_200,
-                taskStatusChangeDto, builder);
+        String content = getContent(MockMvcResultMatchers.status().isOk(),
+                taskUpdateStatusDto, builder);
         TaskResponseDto expected = new TaskResponseDto();
-        expected.setEmail("email");
+        expected.setEmail("email@ukr.net");
         expected.setTitle("title9");
         expected.setStatus("Done");
         TaskResponseDto actual = objectMapper.readValue(content, TaskResponseDto.class);
@@ -136,14 +129,14 @@ public class TaskControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
-    public void checkIncorrectChangeTaskStatusData() {
-        taskStatusChangeDto.setEmail(null);
-        taskStatusChangeDto.setNewStatus("");
-        taskStatusChangeDto.setTitle(null);
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
+    public void checkIncorrectUpdateTaskStatusData() {
+        taskUpdateStatusDto.setEmail(null);
+        taskUpdateStatusDto.setNewStatus("");
+        taskUpdateStatusDto.setTitle(null);
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .put(CHANGE_TASK_STATUS_ENDPOINT);
-        List<String> errors = getErrors(taskStatusChangeDto, builder);
+        List<String> errors = getErrors(taskUpdateStatusDto, builder);
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Email")));
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "New status")));
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Title")));
@@ -151,42 +144,42 @@ public class TaskControllerTest {
 
     @SneakyThrows
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
     public void checkUpdateTaskIsOk() {
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .put(TASKS_ENDPOINT);
-        String content = getResponse(STATUS_200,
-                taskPutDto, builder);
-        TaskPutResponseDto expected = new TaskPutResponseDto();
-        expected.setEmail("email");
+        String content = getContent(MockMvcResultMatchers.status().isOk(),
+                taskUpdateDto, builder);
+        TaskUpdateResponseDto expected = new TaskUpdateResponseDto();
+        expected.setEmail("email@ukr.net");
         expected.setStatus("View");
         expected.setTitle("New title");
         expected.setDescription("New description");
-        TaskPutResponseDto actual = objectMapper.readValue(content, TaskPutResponseDto.class);
+        TaskUpdateResponseDto actual = objectMapper.readValue(content, TaskUpdateResponseDto.class);
         Assertions.assertEquals(expected, actual);
     }
 
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
     public void checkIncorrectUpdateTaskData() {
-        taskPutDto.setCurrentTitle("");
-        taskPutDto.setEmail(null);
+        taskUpdateDto.setTitle("");
+        taskUpdateDto.setEmail(null);
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .put(TASKS_ENDPOINT);
-        List<String> errors = getErrors(taskPutDto, builder);
+        List<String> errors = getErrors(taskUpdateDto, builder);
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Email")));
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Title")));
     }
 
     @SneakyThrows
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
     public void checkGetTasksIsOk() {
         changeUsersForSomeTasks();
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .get(TASKS_ENDPOINT);
-        String content = getResponse(STATUS_200,
-                taskGetRequestDto, builder);
+        String content = getContent(MockMvcResultMatchers.status().isOk(),
+                taskGetDto, builder);
         List<TaskGetResponseDto> tasks = objectMapper.readValue(content,
                 new TypeReference<>() {
                 });
@@ -196,27 +189,27 @@ public class TaskControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
-    public void checkIncorrectGetRequestTaskData() {
-        taskGetRequestDto.setStatus(null);
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
+    public void checkIncorrectGetTasksData() {
+        taskGetDto.setStatus(null);
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .get(TASKS_ENDPOINT);
-        List<String> errors = getErrors(taskGetRequestDto, builder);
+        List<String> errors = getErrors(taskGetDto, builder);
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Status")));
     }
 
     @SneakyThrows
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
-    public void checkDeleteTasksIsOk() {
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
+    public void checkDeleteTaskIsOk() {
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .delete(TASKS_ENDPOINT);
-        getResponse(STATUS_200,
+        getContent(MockMvcResultMatchers.status().isOk(),
                 taskDeleteDto, builder);
     }
 
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
     public void checkIncorrectDeleteTaskData() {
         taskDeleteDto.setEmail("");
         taskDeleteDto.setTitle(null);
@@ -229,14 +222,14 @@ public class TaskControllerTest {
 
     @SneakyThrows
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
-    public void checkTaskUserIsOk() {
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
+    public void checkUpdateTaskUserIsOk() {
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .put(CHANGE_TASK_USER_ENDPOINT);
-        String content = getResponse(STATUS_200,
-                taskUserChangeDto, builder);
+        String content = getContent(MockMvcResultMatchers.status().isOk(),
+                taskUpdateUserDto, builder);
         TaskResponseDto expected = new TaskResponseDto();
-        expected.setEmail("email0");
+        expected.setEmail("email0@ukr.net");
         expected.setTitle("title17");
         expected.setStatus("Done");
         TaskResponseDto actual = objectMapper.readValue(content, TaskResponseDto.class);
@@ -245,29 +238,29 @@ public class TaskControllerTest {
 
     @SneakyThrows
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
-    public void checkTaskUserIsFailed() {
-        taskUserChangeDto.setNewEmail("wrong email");
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
+    public void checkUpdateTaskUserIsFailed() {
+        taskUpdateUserDto.setNewEmail("wrong email");
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .put(CHANGE_TASK_USER_ENDPOINT);
-        String content = getResponse(STATUS_400,
-                taskUserChangeDto, builder);
+        String content = getContent(MockMvcResultMatchers.status().isBadRequest(),
+                taskUpdateUserDto, builder);
         Map<String,Object> map = objectMapper.readValue(content,
                 new TypeReference<HashMap<String, Object>>(){});
         String errorMessage = (String) map.get("error");
         Assertions.assertEquals(String.format(NO_SUCH_USER_ERROR,
-                taskUserChangeDto.getNewEmail()), errorMessage);
+                taskUpdateUserDto.getNewEmail()), errorMessage);
     }
 
     @Test
-    @WithMockUser(username = "email", password = "1234", roles = "USER")
-    public void checkIncorrectChangeTaskUserData() {
-        taskUserChangeDto.setTitle(null);
-        taskUserChangeDto.setNewEmail("");
-        taskUserChangeDto.setEmail("");
+    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
+    public void checkIncorrectUpdateTaskUserData() {
+        taskUpdateUserDto.setTitle(null);
+        taskUpdateUserDto.setNewEmail("");
+        taskUpdateUserDto.setEmail("");
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .put(CHANGE_TASK_USER_ENDPOINT);
-        List<String> errors = getErrors(taskUserChangeDto, builder);
+        List<String> errors = getErrors(taskUpdateUserDto, builder);
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Email")));
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "New email")));
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Title")));
@@ -276,7 +269,7 @@ public class TaskControllerTest {
     @SneakyThrows
     private List<String> getErrors(Object object,
                                    MockHttpServletRequestBuilder builder) {
-        String content = getResponse(STATUS_400,
+        String content = getContent(MockMvcResultMatchers.status().isBadRequest(),
                 object, builder);
         Map<String,Object> map = objectMapper.readValue(content,
                 new TypeReference<HashMap<String, Object>>(){});
@@ -284,8 +277,8 @@ public class TaskControllerTest {
     }
 
     @SneakyThrows
-    private String getResponse(ResultMatcher status, Object object,
-                               MockHttpServletRequestBuilder builder) {
+    private String getContent(ResultMatcher status, Object object,
+                              MockHttpServletRequestBuilder builder) {
         String json = objectMapper.writeValueAsString(object);
         MvcResult result = mockMvc.perform(builder
                 .content(json)
@@ -297,52 +290,58 @@ public class TaskControllerTest {
     }
 
     private void changeUsersForSomeTasks() {
-        taskUserChangeDto.setNewEmail("email15");
-        taskUserChangeDto.setTitle("title10");
+        taskUpdateUserDto.setNewEmail("email15@ukr.net");
+        taskUpdateUserDto.setTitle("title10");
         makePutRequest();
-        taskUserChangeDto.setNewEmail("email5");
-        taskUserChangeDto.setTitle("title19");
+        taskUpdateUserDto.setNewEmail("email5@ukr.net");
+        taskUpdateUserDto.setTitle("title19");
         makePutRequest();
     }
 
     private void makePutRequest() {
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .put(CHANGE_TASK_USER_ENDPOINT);
-        getResponse(STATUS_200, taskUserChangeDto, builder);
+        getContent(MockMvcResultMatchers.status().isOk(), taskUpdateUserDto, builder);
     }
 
-    private void setTaskUserChangeDto() {
-        taskUserChangeDto = new TaskUserChangeDto();
-        taskUserChangeDto.setEmail("email");
-        taskUserChangeDto.setNewEmail("email0");
-        taskUserChangeDto.setTitle("title17");
+    private void setTaskGetDto() {
+        taskGetDto = new TaskGetDto();
+        taskGetDto.setStatus("In Progress");
+    }
+
+    private void setTaskDeleteDto() {
+        taskDeleteDto = new TaskDeleteDto();
+        taskDeleteDto.setTitle("title5");
+        taskDeleteDto.setEmail("email@ukr.net");
+    }
+
+    private void setTaskPostDto() {
+        taskCreateDto = new TaskCreateDto();
+        taskCreateDto.setTitle("Title");
+        taskCreateDto.setDescription("Description");
+        taskCreateDto.setStatus("Done");
+        taskCreateDto.setEmail("email@ukr.net");
     }
 
     private void setTaskPutDto() {
-        taskPutDto = new TaskPutDto();
-        taskPutDto.setCurrentTitle("title0");
-        taskPutDto.setEmail("email");
-        taskPutDto.setNewTitle("New title");
-        taskPutDto.setNewDescription("New description");
+        taskUpdateDto = new TaskUpdateDto();
+        taskUpdateDto.setTitle("title0");
+        taskUpdateDto.setEmail("email@ukr.net");
+        taskUpdateDto.setNewTitle("New title");
+        taskUpdateDto.setNewDescription("New description");
     }
 
-    private void setTaskCreationDto() {
-        taskPostDto = new TaskPostDto();
-        taskPostDto.setTitle("Title");
-        taskPostDto.setDescription("Description");
-        taskPostDto.setStatus("Done");
-        taskPostDto.setEmail("email");
+    private void setTaskUpdateStatusDto() {
+        taskUpdateStatusDto = new TaskUpdateStatusDto();
+        taskUpdateStatusDto.setTitle("title9");
+        taskUpdateStatusDto.setNewStatus("Done");
+        taskUpdateStatusDto.setEmail("email@ukr.net");
     }
 
-    private void setTaskStatusChangeDto() {
-        taskStatusChangeDto = new TaskStatusChangeDto();
-        taskStatusChangeDto.setTitle("title9");
-        taskStatusChangeDto.setNewStatus("Done");
-        taskStatusChangeDto.setEmail("email");
-    }
-
-    private void setTaskGetRequestDto() {
-        taskGetRequestDto = new TaskGetRequestDto();
-        taskGetRequestDto.setStatus("In Progress");
+    private void setTaskUpdateUserDto() {
+        taskUpdateUserDto = new TaskUpdateUserDto();
+        taskUpdateUserDto.setEmail("email@ukr.net");
+        taskUpdateUserDto.setNewEmail("email0@ukr.net");
+        taskUpdateUserDto.setTitle("title17");
     }
 }

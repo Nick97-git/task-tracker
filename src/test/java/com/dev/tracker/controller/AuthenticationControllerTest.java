@@ -35,12 +35,11 @@ import org.springframework.web.util.NestedServletException;
 public class AuthenticationControllerTest {
     private static final String LOGIN_ENDPOINT = "/login";
     private static final String REGISTRATION_ENDPOINT = "/registration";
-    private static final String FIELD_ERROR = "%s can't be null or blank!";
-    private static final String INCORRECT_EMAIL = "There is no such user with email: %s!";
-    private static final String PASSWORDS_DONT_MATCH_ERROR = "Passwords don't match!";
     private static final String AUTHENTICATION_ERROR = "Incorrect username or password!";
-    private static final ResultMatcher STATUS_200 = MockMvcResultMatchers.status().isOk();
-    private static final ResultMatcher STATUS_400 = MockMvcResultMatchers.status().isBadRequest();
+    private static final String EMAIL_ERROR = "Invalid email!";
+    private static final String FIELD_ERROR = "%s can't be null or blank!";
+    private static final String PASSWORDS_DONT_MATCH_ERROR = "Passwords don't match!";
+    private static final String USER_NOT_FOUND_ERROR = "There is no such user with email: %s!";
     private UserLoginDto userLoginDto;
     private UserRegistrationDto userRegistrationDto;
     @Autowired
@@ -62,12 +61,19 @@ public class AuthenticationControllerTest {
                 .content(json)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
-                .andExpect(STATUS_200)
+                .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn();
     }
 
     @Test
-    public void checkPasswordsError() {
+    public void getEmailError() {
+        userRegistrationDto.setEmail("email");
+        List<String> errors = getErrors();
+        Assertions.assertTrue(errors.contains(EMAIL_ERROR));
+    }
+
+    @Test
+    public void getPasswordsError() {
         userRegistrationDto.setPassword("1234567");
         List<String> errors = getErrors();
         Assertions.assertTrue(errors.contains(PASSWORDS_DONT_MATCH_ERROR));
@@ -75,30 +81,17 @@ public class AuthenticationControllerTest {
 
     @Test
     public void checkIncorrectRegistrationData() {
-        userRegistrationDto.setEmail("");
         userRegistrationDto.setFirstName(null);
         userRegistrationDto.setLastName(null);
         List<String> errors = getErrors();
-        Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Email")));
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "First name")));
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Last name")));
     }
 
     @SneakyThrows
     @Test
-    public void checkRegistrationWithEmptyRequestBody() {
-        mockMvc.perform(MockMvcRequestBuilders.post(REGISTRATION_ENDPOINT)
-                .content("")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(STATUS_400)
-                .andReturn();
-    }
-
-    @SneakyThrows
-    @Test
     public void registerNotUniqueEmail() {
-        userRegistrationDto.setEmail("email");
+        userRegistrationDto.setEmail("email@ukr.net");
         String json = objectMapper.writeValueAsString(userRegistrationDto);
         Assertions.assertThrows(NestedServletException.class, () -> {
             mockMvc.perform(MockMvcRequestBuilders.post(REGISTRATION_ENDPOINT)
@@ -111,8 +104,8 @@ public class AuthenticationControllerTest {
 
     @SneakyThrows
     @Test
-    public void checkLoginSuccessful() {
-        Map<String,Object> map = getResponse(STATUS_200,
+    public void checkLoginIsOk() {
+        Map<String,Object> map = getContentAsMap(MockMvcResultMatchers.status().isOk(),
                 userLoginDto, LOGIN_ENDPOINT);
         String token = (String) map.get("token");
         Assertions.assertFalse(token.isEmpty());
@@ -120,19 +113,19 @@ public class AuthenticationControllerTest {
 
     @SneakyThrows
     @Test
-    public void checkIncorrectEmail() {
-        userLoginDto.setEmail("wrongEmail");
-        Map<String,Object> map = getResponse(STATUS_400,
+    public void checkLoginWithWrongEmail() {
+        userLoginDto.setEmail("wrong email");
+        Map<String,Object> map = getContentAsMap(MockMvcResultMatchers.status().isBadRequest(),
                 userLoginDto, LOGIN_ENDPOINT);
-        String message = (String) map.get("error");
-        Assertions.assertEquals(String.format(INCORRECT_EMAIL,
-                userLoginDto.getEmail()), message);
+        String errorMessage = (String) map.get("error");
+        Assertions.assertEquals(String.format(USER_NOT_FOUND_ERROR,
+                userLoginDto.getEmail()), errorMessage);
     }
 
     @Test
-    public void checkIncorrectPassword() {
+    public void checkLoginWithWrongPassword() {
         userLoginDto.setPassword("wrong password");
-        Map<String,Object> map = getResponse(STATUS_400,
+        Map<String,Object> map = getContentAsMap(MockMvcResultMatchers.status().isBadRequest(),
                 userLoginDto, LOGIN_ENDPOINT);
         String message = (String) map.get("error");
         Assertions.assertEquals(AUTHENTICATION_ERROR, message);
@@ -142,7 +135,7 @@ public class AuthenticationControllerTest {
     public void checkIncorrectLoginData() {
         userLoginDto.setEmail("");
         userLoginDto.setPassword(null);
-        Map<String,Object> map = getResponse(STATUS_400,
+        Map<String,Object> map = getContentAsMap(MockMvcResultMatchers.status().isBadRequest(),
                 userLoginDto, LOGIN_ENDPOINT);
         List<String> errors = (ArrayList<String>) map.get("errors");
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Email")));
@@ -151,13 +144,14 @@ public class AuthenticationControllerTest {
 
     @SneakyThrows
     private List<String> getErrors() {
-        Map<String,Object> map = getResponse(STATUS_400,
+        Map<String,Object> map = getContentAsMap(MockMvcResultMatchers.status().isBadRequest(),
                 userRegistrationDto, REGISTRATION_ENDPOINT);
         return ((ArrayList<String>) map.get("errors"));
     }
 
     @SneakyThrows
-    private Map<String, Object> getResponse(ResultMatcher status, Object object, String endpoint) {
+    private Map<String, Object> getContentAsMap(ResultMatcher status,
+                                                Object object, String endpoint) {
         String json = objectMapper.writeValueAsString(object);
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post(endpoint)
                 .content(json)
@@ -172,7 +166,7 @@ public class AuthenticationControllerTest {
 
     private void setUserLoginDto() {
         userLoginDto = new UserLoginDto();
-        userLoginDto.setEmail("email");
+        userLoginDto.setEmail("email@ukr.net");
         userLoginDto.setPassword("1234");
     }
 

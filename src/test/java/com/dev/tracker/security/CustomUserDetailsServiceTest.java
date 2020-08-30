@@ -2,6 +2,7 @@ package com.dev.tracker.security;
 
 import com.dev.tracker.model.Role;
 import com.dev.tracker.model.User;
+import com.dev.tracker.security.impl.CustomUserDetailsService;
 import com.dev.tracker.service.UserService;
 import java.util.Set;
 import org.junit.jupiter.api.Assertions;
@@ -31,7 +32,7 @@ public class CustomUserDetailsServiceTest {
 
     private void setUser() {
         user = new User();
-        user.setEmail("email");
+        user.setEmail("email@ukr.net");
         user.setPassword("1234");
         user.setRoles(roles);
     }
@@ -46,9 +47,9 @@ public class CustomUserDetailsServiceTest {
 
     @Test
     public void loadUserByUserNameIsOk() {
-        Mockito.when(userService.findByEmail("email"))
+        Mockito.when(userService.findByEmail("email@ukr.net"))
                 .thenReturn(user);
-        UserDetails userDetails = userDetailsService.loadUserByUsername("email");
+        UserDetails userDetails = userDetailsService.loadUserByUsername("email@ukr.net");
         Assertions.assertEquals(user.getEmail(), userDetails.getUsername());
         Assertions.assertEquals(user.getPassword(), userDetails.getPassword());
         Assertions.assertEquals(2, userDetails.getAuthorities().size());

@@ -2,24 +2,23 @@ package com.dev.tracker.mapper;
 
 import com.dev.tracker.exception.TaskStatusException;
 import com.dev.tracker.model.Task;
-import com.dev.tracker.model.TaskStatus;
 import com.dev.tracker.model.User;
+import com.dev.tracker.model.dto.task.TaskCreateDto;
 import com.dev.tracker.model.dto.task.TaskGetResponseDto;
-import com.dev.tracker.model.dto.task.TaskPostDto;
-import com.dev.tracker.model.dto.task.TaskPutDto;
-import com.dev.tracker.model.dto.task.TaskPutResponseDto;
 import com.dev.tracker.model.dto.task.TaskResponseDto;
+import com.dev.tracker.model.dto.task.TaskUpdateDto;
+import com.dev.tracker.model.dto.task.TaskUpdateResponseDto;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TaskMapper {
 
-    public Task convertTaskCreationDtoToTask(TaskPostDto taskPostDto, User user) {
+    public Task convertTaskPostDtoToTask(TaskCreateDto taskCreateDto, User user) {
         Task task = new Task();
-        task.setTitle(taskPostDto.getTitle());
-        task.setDescription(taskPostDto.getDescription());
-        task.setStatus(getStatus(taskPostDto.getStatus()));
+        task.setTitle(taskCreateDto.getTitle());
+        task.setDescription(taskCreateDto.getDescription());
+        task.setStatus(getStatus(taskCreateDto.getStatus()));
         task.setUser(user);
         return task;
     }
@@ -32,17 +31,18 @@ public class TaskMapper {
         return taskResponseDto;
     }
 
-    public Task convertTaskPutDtoToTask(Task task, TaskPutDto taskPutDto) {
-        task.setStatus(getStatus(getData(task.getStatus().getName(), taskPutDto.getNewStatus())));
-        task.setTitle(getData(task.getTitle(), taskPutDto.getNewTitle()));
-        task.setDescription(getData(task.getDescription(), taskPutDto.getNewDescription()));
+    public Task convertTaskPutDtoToTask(Task task, TaskUpdateDto taskUpdateDto) {
+        task.setStatus(getStatus(getValue(task.getStatus().getName(),
+                taskUpdateDto.getNewStatus())));
+        task.setTitle(getValue(task.getTitle(), taskUpdateDto.getNewTitle()));
+        task.setDescription(getValue(task.getDescription(), taskUpdateDto.getNewDescription()));
         return task;
     }
 
     @SneakyThrows
-    public TaskStatus getStatus(String status) {
-        TaskStatus[] taskStatuses = TaskStatus.values();
-        for (TaskStatus taskStatus : taskStatuses) {
+    public Task.TaskStatus getStatus(String status) {
+        Task.TaskStatus[] taskStatuses = Task.TaskStatus.values();
+        for (Task.TaskStatus taskStatus : taskStatuses) {
             if (taskStatus.getName().equalsIgnoreCase(status)) {
                 return taskStatus;
             }
@@ -50,13 +50,13 @@ public class TaskMapper {
         throw new TaskStatusException("There is no such status for task: " + status + "!");
     }
 
-    public TaskPutResponseDto convertTaskToTaskPutResponseDto(Task task) {
-        TaskPutResponseDto taskPutResponseDto = new TaskPutResponseDto();
-        taskPutResponseDto.setTitle(task.getTitle());
-        taskPutResponseDto.setDescription(task.getDescription());
-        taskPutResponseDto.setStatus(task.getStatus().getName());
-        taskPutResponseDto.setEmail(task.getUser().getEmail());
-        return taskPutResponseDto;
+    public TaskUpdateResponseDto convertTaskToTaskPutResponseDto(Task task) {
+        TaskUpdateResponseDto taskUpdateResponseDto = new TaskUpdateResponseDto();
+        taskUpdateResponseDto.setTitle(task.getTitle());
+        taskUpdateResponseDto.setDescription(task.getDescription());
+        taskUpdateResponseDto.setStatus(task.getStatus().getName());
+        taskUpdateResponseDto.setEmail(task.getUser().getEmail());
+        return taskUpdateResponseDto;
     }
 
     public TaskGetResponseDto convertTaskToTaskGetResponseDto(Task task) {
@@ -67,7 +67,7 @@ public class TaskMapper {
         return taskGetResponseDto;
     }
 
-    private String getData(String oldData, String newData) {
-        return newData == null ? oldData : newData;
+    private String getValue(String currentValue, String newValue) {
+        return newValue != null ? newValue : currentValue;
     }
 }

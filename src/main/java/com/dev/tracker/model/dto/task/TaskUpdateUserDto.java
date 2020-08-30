@@ -4,12 +4,11 @@ import javax.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class TaskPutDto {
+public class TaskUpdateUserDto {
     @NotBlank(message = "Title can't be null or blank!")
-    private String currentTitle;
+    private String title;
     @NotBlank(message = "Email can't be null or blank!")
     private String email;
-    private String newTitle;
-    private String newDescription;
-    private String newStatus;
+    @NotBlank(message = "New email can't be null or blank!")
+    private String newEmail;
 }

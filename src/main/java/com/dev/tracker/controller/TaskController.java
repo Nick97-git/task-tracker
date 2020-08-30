@@ -3,14 +3,14 @@ package com.dev.tracker.controller;
 import com.dev.tracker.mapper.TaskMapper;
 import com.dev.tracker.model.Task;
 import com.dev.tracker.model.User;
+import com.dev.tracker.model.dto.task.TaskCreateDto;
 import com.dev.tracker.model.dto.task.TaskDeleteDto;
-import com.dev.tracker.model.dto.task.TaskGetRequestDto;
-import com.dev.tracker.model.dto.task.TaskPostDto;
-import com.dev.tracker.model.dto.task.TaskPutDto;
-import com.dev.tracker.model.dto.task.TaskPutResponseDto;
+import com.dev.tracker.model.dto.task.TaskGetDto;
 import com.dev.tracker.model.dto.task.TaskResponseDto;
-import com.dev.tracker.model.dto.task.TaskStatusChangeDto;
-import com.dev.tracker.model.dto.task.TaskUserChangeDto;
+import com.dev.tracker.model.dto.task.TaskUpdateDto;
+import com.dev.tracker.model.dto.task.TaskUpdateResponseDto;
+import com.dev.tracker.model.dto.task.TaskUpdateStatusDto;
+import com.dev.tracker.model.dto.task.TaskUpdateUserDto;
 import com.dev.tracker.service.TaskService;
 import com.dev.tracker.service.UserService;
 import java.util.List;
@@ -34,46 +34,46 @@ public class TaskController {
     private final UserService userService;
 
     @GetMapping
-    public List<TaskResponseDto> getTasks(@RequestBody @Valid TaskGetRequestDto taskGetRequestDto) {
+    public List<TaskResponseDto> getTasks(@RequestBody @Valid TaskGetDto taskGetDto) {
         List<Task> tasks = taskService
-                .getTasks(taskMapper.getStatus(taskGetRequestDto.getStatus()));
+                .getTasks(taskMapper.getStatus(taskGetDto.getStatus()));
         return tasks.stream()
                 .map(taskMapper::convertTaskToTaskResponseDto)
                 .collect(Collectors.toList());
     }
 
     @PostMapping
-    public TaskResponseDto createTask(@RequestBody @Valid TaskPostDto taskPostDto) {
-        User user = userService.findByEmail(taskPostDto.getEmail());
-        Task task = taskMapper.convertTaskCreationDtoToTask(taskPostDto, user);
-        Task createdTask = taskService.save(task);
-        return taskMapper.convertTaskToTaskResponseDto(createdTask);
+    public TaskResponseDto createTask(@RequestBody @Valid TaskCreateDto taskCreateDto) {
+        User user = userService.findByEmail(taskCreateDto.getEmail());
+        Task task = taskMapper.convertTaskPostDtoToTask(taskCreateDto, user);
+        taskService.save(task);
+        return taskMapper.convertTaskToTaskResponseDto(task);
     }
 
     @PutMapping
-    public TaskPutResponseDto updateTask(@RequestBody @Valid TaskPutDto taskPutDto) {
-        Task task = taskService.findByTitleAndUserEmail(taskPutDto.getCurrentTitle(),
-                taskPutDto.getEmail());
-        Task updatedTask = taskMapper.convertTaskPutDtoToTask(task, taskPutDto);
+    public TaskUpdateResponseDto updateTask(@RequestBody @Valid TaskUpdateDto taskUpdateDto) {
+        Task task = taskService.findByTitleAndUserEmail(taskUpdateDto.getTitle(),
+                taskUpdateDto.getEmail());
+        Task updatedTask = taskMapper.convertTaskPutDtoToTask(task, taskUpdateDto);
         return taskMapper.convertTaskToTaskPutResponseDto(taskService.save(updatedTask));
     }
 
     @PutMapping("/user")
     public TaskResponseDto updateTaskUser(
-            @RequestBody @Valid TaskUserChangeDto taskUserChangeDto) {
-        Task task = taskService.findByTitleAndUserEmail(taskUserChangeDto.getTitle(),
-                taskUserChangeDto.getEmail());
-        User newUser = userService.findByEmail(taskUserChangeDto.getNewEmail());
+            @RequestBody @Valid TaskUpdateUserDto taskUpdateUserDto) {
+        Task task = taskService.findByTitleAndUserEmail(taskUpdateUserDto.getTitle(),
+                taskUpdateUserDto.getEmail());
+        User newUser = userService.findByEmail(taskUpdateUserDto.getNewEmail());
         task.setUser(newUser);
         return taskMapper.convertTaskToTaskResponseDto(taskService.save(task));
     }
 
     @PutMapping("/status")
     public TaskResponseDto updateTaskStatus(
-            @RequestBody @Valid TaskStatusChangeDto taskStatusChangeDto) {
-        Task task = taskService.findByTitleAndUserEmail(taskStatusChangeDto.getTitle(),
-                taskStatusChangeDto.getEmail());
-        task.setStatus(taskMapper.getStatus(taskStatusChangeDto.getNewStatus()));
+            @RequestBody @Valid TaskUpdateStatusDto taskUpdateStatusDto) {
+        Task task = taskService.findByTitleAndUserEmail(taskUpdateStatusDto.getTitle(),
+                taskUpdateStatusDto.getEmail());
+        task.setStatus(taskMapper.getStatus(taskUpdateStatusDto.getNewStatus()));
         return taskMapper.convertTaskToTaskResponseDto(taskService.save(task));
     }
 

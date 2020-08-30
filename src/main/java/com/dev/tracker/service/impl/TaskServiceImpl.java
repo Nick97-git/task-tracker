@@ -1,7 +1,6 @@
 package com.dev.tracker.service.impl;
 
 import com.dev.tracker.model.Task;
-import com.dev.tracker.model.TaskStatus;
 import com.dev.tracker.model.User;
 import com.dev.tracker.repository.TaskRepository;
 import com.dev.tracker.service.TaskService;
@@ -32,7 +31,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<Task> getTasks(TaskStatus status) {
+    public List<Task> getTasks(Task.TaskStatus status) {
         return taskRepository.findAllByStatusOrderByUserIdDesc(status);
     }
 }

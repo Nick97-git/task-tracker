@@ -1,4 +1,4 @@
-package com.dev.tracker.security;
+package com.dev.tracker.security.impl;
 
 import com.dev.tracker.model.User;
 import com.dev.tracker.service.UserService;

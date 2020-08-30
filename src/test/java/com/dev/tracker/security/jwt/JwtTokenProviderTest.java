@@ -33,12 +33,12 @@ public class JwtTokenProviderTest {
 
     @SneakyThrows
     @Test
-    public void jwtIsOk() {
+    public void jwtAuthenticationIsOk() {
         UserDeleteDto userDeleteDto = new UserDeleteDto();
-        userDeleteDto.setEmail("email");
+        userDeleteDto.setEmail("email@ukr.net");
         String json = objectMapper.writeValueAsString(userDeleteDto);
         String token = jwtTokenProvider
-                .createToken("email", List.of("ADMIN", "USER"));
+                .createToken("email@ukr.net", List.of("ADMIN", "USER"));
         mockMvc.perform(MockMvcRequestBuilders.delete(USERS_ENDPOINT)
                 .header("Authorization", "Bearer " + token)
         .content(json).contentType(MediaType.APPLICATION_JSON)
@@ -48,9 +48,9 @@ public class JwtTokenProviderTest {
 
     @SneakyThrows
     @Test
-    public void jwtIsFailed() {
+    public void jwtAuthenticationIsFailed() {
         UserDeleteDto userDeleteDto = new UserDeleteDto();
-        userDeleteDto.setEmail("email");
+        userDeleteDto.setEmail("email@ukr.net");
         String json = objectMapper.writeValueAsString(userDeleteDto);
         Assertions.assertThrows(InvalidJwtAuthenticationException.class, () -> {
             mockMvc.perform(MockMvcRequestBuilders.delete(USERS_ENDPOINT)

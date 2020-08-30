@@ -1,5 +1,6 @@
 package com.dev.tracker.model.dto.user;
 
+import com.dev.tracker.annotation.EmailConstraint;
 import com.dev.tracker.annotation.PasswordsValueMatch;
 import javax.validation.constraints.NotBlank;
 import lombok.Data;
@@ -7,7 +8,7 @@ import lombok.Data;
 @Data
 @PasswordsValueMatch
 public class UserRegistrationDto {
-    @NotBlank(message = "Email can't be null or blank!")
+    @EmailConstraint
     private String email;
     private String password;
     private String repeatPassword;
