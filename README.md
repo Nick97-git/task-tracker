@@ -67,9 +67,14 @@ password (MYSQL_PASSWORD) and root password(MYSQL_ROOT_PASSWORD) for MySQL Serve
 * docker-compose up --build
 
 # <a name = "test"></a>Test project
-For testing this API you can download Postman or another such an analogue. There are test data that you can use.
-There are one user already registered with both ADMIN and USER roles (email = "email@ukr.net", password = "1234") and 20 users with USER role (email = "email(number from 0 to 19)@ukr.net", password = "1234"). Also, there are prepared tasks with name like title + (number from 0 to 19) and user with email email@ukr.net as their creator. All new users automatically get USER role. You can change these test data in InjectDataController if you want.
-All available endpoints you can see on http://localhost:8080/swagger-ui.html. For authorization, you must add a new header, where Authorization is key and Bearer token is value, where token - value that you will get after login query to the system in the response.
+For testing this API you can download Postman or another such an analogue. 
+
+There are test data that you can use.
+There are one user already registered with both ADMIN and USER roles (email = "email@ukr.net", password = "1234") and 20 users with USER role (email = "email(number from 0 to 19)@ukr.net", password = "1234"). Also, there are prepared tasks with title as title + (number from 0 to 19) and user with email email@ukr.net as their creator. All new users automatically get USER role. You can change these test data in InjectDataController if you want.
+
+All available endpoints you can see on http://localhost:8080/swagger-ui.html. 
+
+For authorization, you must add a new header, where Authorization is key and Bearer token is value, where token - value that you will get after login query to the system in the response.
 
 # <a name="author"></a>Author
 
