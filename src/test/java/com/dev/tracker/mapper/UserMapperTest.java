@@ -107,7 +107,6 @@ public class UserMapperTest {
 
     private void setUserPutDto() {
         userUpdateDto = new UserUpdateDto();
-        userUpdateDto.setEmail("email@ukr.net");
         userUpdateDto.setNewEmail("new email");
     }
 

@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,8 +44,9 @@ public class TaskController {
     }
 
     @PostMapping
-    public TaskResponseDto createTask(@RequestBody @Valid TaskCreateDto taskCreateDto) {
-        User user = userService.findByEmail(taskCreateDto.getEmail());
+    public TaskResponseDto createTask(@RequestBody @Valid TaskCreateDto taskCreateDto,
+                                      Authentication authentication) {
+        User user = userService.findByEmail(authentication.getName());
         Task task = taskMapper.convertTaskPostDtoToTask(taskCreateDto, user);
         taskService.save(task);
         return taskMapper.convertTaskToTaskResponseDto(task);

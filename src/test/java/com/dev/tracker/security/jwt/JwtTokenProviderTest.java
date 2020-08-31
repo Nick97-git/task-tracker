@@ -13,7 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
@@ -22,8 +21,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 @ActiveProfiles("test")
 public class JwtTokenProviderTest {
     private static final String USERS_ENDPOINT = "/users";
-    private static final ResultMatcher STATUS_200 = MockMvcResultMatchers.status().isOk();
-    private static final ResultMatcher STATUS_400 = MockMvcResultMatchers.status().isBadRequest();
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
     @Autowired
@@ -41,9 +38,9 @@ public class JwtTokenProviderTest {
                 .createToken("email@ukr.net", List.of("ADMIN", "USER"));
         mockMvc.perform(MockMvcRequestBuilders.delete(USERS_ENDPOINT)
                 .header("Authorization", "Bearer " + token)
-        .content(json).contentType(MediaType.APPLICATION_JSON)
+                .content(json).contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
-                .andExpect(STATUS_200);
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @SneakyThrows
@@ -57,7 +54,7 @@ public class JwtTokenProviderTest {
                     .header("Authorization", "Bearer " + "fake token")
                     .content(json).contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(STATUS_400);
+                    .andExpect(MockMvcResultMatchers.status().isBadRequest());
         });
     }
 }

@@ -29,16 +29,14 @@ public class TaskMapperTest {
 
     @Test
     public void checkConvertToTaskIsOk() {
-        Task expected = new Task();
         User user = new User();
         user.setEmail("email@ukr.net");
+        Task expected = new Task();
         expected.setUser(user);
         expected.setStatus(Task.TaskStatus.DONE);
         expected.setDescription("description");
         expected.setTitle("title");
-        User userForCreation = new User();
-        userForCreation.setEmail(taskCreateDto.getEmail());
-        Task actual = taskMapper.convertTaskPostDtoToTask(taskCreateDto, userForCreation);
+        Task actual = taskMapper.convertTaskPostDtoToTask(taskCreateDto, user);
         Assertions.assertEquals(expected, actual);
     }
 
@@ -98,7 +96,6 @@ public class TaskMapperTest {
 
     private void setTaskCreationDto() {
         taskCreateDto = new TaskCreateDto();
-        taskCreateDto.setEmail("email@ukr.net");
         taskCreateDto.setStatus("done");
         taskCreateDto.setDescription("description");
         taskCreateDto.setTitle("title");

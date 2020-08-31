@@ -9,7 +9,7 @@ services:
       - MYSQL_USER=nick
       - MYSQL_PASSWORD=root
     ports:
-      - "3306:3306"
+      - "3307:3306"
   app:
     image: spring-boot-project
     container_name: spring-boot-project

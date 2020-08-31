@@ -1,7 +1,6 @@
 package com.dev.tracker.controller;
 
 import com.dev.tracker.model.dto.user.UserDeleteDto;
-import com.dev.tracker.model.dto.user.UserGetDto;
 import com.dev.tracker.model.dto.user.UserGetResponseDto;
 import com.dev.tracker.model.dto.user.UserResponseDto;
 import com.dev.tracker.model.dto.user.UserUpdateDto;
@@ -43,7 +42,6 @@ public class UserControllerTest {
     private static final String DELETE_USER_ERROR = "You have no right to delete this user!";
     private static final String EMAIL_ERROR = "Email can't be null or blank!";
     private UserDeleteDto userDeleteDto;
-    private UserGetDto userGetDto;
     private UserUpdateDto userUpdateDto;
     @Autowired
     private MockMvc mockMvc;
@@ -53,7 +51,6 @@ public class UserControllerTest {
     @BeforeEach
     public void setUp() {
         setUserDeleteDto();
-        setUserGetDto();
         setUserUpdateDto();
     }
 
@@ -98,21 +95,11 @@ public class UserControllerTest {
                 .put(USERS_ENDPOINT);
         String content = getContent(MockMvcResultMatchers.status().isOk(), userUpdateDto, builder);
         UserResponseDto expected = new UserResponseDto();
-        expected.setEmail("new email");
-        expected.setFirstName("first");
+        expected.setEmail("email@ukr.net");
+        expected.setFirstName("new first name");
         expected.setLastName("new last name");
         UserResponseDto actual = objectMapper.readValue(content, UserResponseDto.class);
         Assertions.assertEquals(expected, actual);
-    }
-
-    @Test
-    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
-    public void checkIncorrectUpdateUserData() {
-        userUpdateDto.setEmail("");
-        MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
-                .put(USERS_ENDPOINT);
-        List<String> errors = getErrors(userUpdateDto, builder);
-        Assertions.assertTrue(errors.contains(EMAIL_ERROR));
     }
 
     @SneakyThrows
@@ -122,22 +109,12 @@ public class UserControllerTest {
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .get(GET_USER_ENDPOINT);
         String content = getContent(MockMvcResultMatchers.status().isOk(),
-                userGetDto, builder);
+                null, builder);
         UserGetResponseDto userGetResponseDto = objectMapper
                 .readValue(content, UserGetResponseDto.class);
         Assertions.assertEquals(20, userGetResponseDto.getTasks().size());
-        Assertions.assertEquals("first", userGetResponseDto.getFirstName());
-        Assertions.assertEquals("last", userGetResponseDto.getLastName());
-    }
-
-    @Test
-    @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
-    public void checkIncorrectGetUserData() {
-        userGetDto.setEmail("");
-        MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
-                .get(GET_USER_ENDPOINT);
-        List<String> errors = getErrors(userGetDto, builder);
-        Assertions.assertTrue(errors.contains(EMAIL_ERROR));
+        Assertions.assertEquals("new first name", userGetResponseDto.getFirstName());
+        Assertions.assertEquals("new last name", userGetResponseDto.getLastName());
     }
 
     @SneakyThrows
@@ -205,15 +182,9 @@ public class UserControllerTest {
         return result.getResponse().getContentAsString();
     }
 
-    private void setUserGetDto() {
-        userGetDto = new UserGetDto();
-        userGetDto.setEmail("email@ukr.net");
-    }
-
     private void setUserUpdateDto() {
         userUpdateDto = new UserUpdateDto();
-        userUpdateDto.setEmail("email3@ukr.net");
-        userUpdateDto.setNewEmail("new email");
+        userUpdateDto.setFirstName("new first name");
         userUpdateDto.setLastName("new last name");
     }
 

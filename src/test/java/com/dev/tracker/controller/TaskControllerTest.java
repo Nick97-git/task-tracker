@@ -46,6 +46,7 @@ public class TaskControllerTest {
     private static final String TASKS_ENDPOINT = "/tasks";
     private static final String FIELD_ERROR = "%s can't be null or blank!";
     private static final String NO_SUCH_USER_ERROR = "There is no such user with email: %s!";
+    private static final String TASK_STATUS_ERROR = "There is no such status for task: %s!";
     private TaskDeleteDto taskDeleteDto;
     private TaskGetDto taskGetDto;
     private TaskCreateDto taskCreateDto;
@@ -61,8 +62,8 @@ public class TaskControllerTest {
     public void setUp() {
         setTaskDeleteDto();
         setTaskGetDto();
-        setTaskPostDto();
-        setTaskPutDto();
+        setTaskCreateDto();
+        setTaskUpdateDto();
         setTaskUpdateStatusDto();
         setTaskUpdateUserDto();
     }
@@ -83,30 +84,27 @@ public class TaskControllerTest {
     @SneakyThrows
     @Test
     @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
-    public void checkCreateTaskWithNotExistentUser() {
-        taskCreateDto.setEmail("wrong email");
-        MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
-                .post(TASKS_ENDPOINT);
+    public void checkCreateTaskWithWrongStatus() {
+        taskCreateDto.setStatus("wrong status");
+        MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.post(TASKS_ENDPOINT);
         String content = getContent(MockMvcResultMatchers.status().isBadRequest(),
                 taskCreateDto, builder);
-        Map<String,Object> map = objectMapper.readValue(content,
-                new TypeReference<HashMap<String, Object>>(){});
-        String errorMessage = (String) map.get("error");
-        Assertions.assertEquals(errorMessage, String.format(NO_SUCH_USER_ERROR,
-                taskCreateDto.getEmail()));
+        Map<String, Object> map = objectMapper.readValue(content,
+                new TypeReference<HashMap<String, Object>>() {});
+        String actual = (String) map.get("error");
+        String expected = String.format(TASK_STATUS_ERROR, taskCreateDto.getStatus());
+        Assertions.assertEquals(expected, actual);
     }
 
     @Test
     @WithMockUser(username = "email@ukr.net", password = "1234", roles = "USER")
     public void checkIncorrectCreateTaskData() {
-        taskCreateDto.setEmail(null);
         taskCreateDto.setStatus(null);
         taskCreateDto.setDescription("");
         taskCreateDto.setTitle("");
         MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
                 .post(TASKS_ENDPOINT);
         List<String> errors = getErrors(taskCreateDto, builder);
-        Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Email")));
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Status")));
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Title")));
         Assertions.assertTrue(errors.contains(String.format(FIELD_ERROR, "Description")));
@@ -315,15 +313,14 @@ public class TaskControllerTest {
         taskDeleteDto.setEmail("email@ukr.net");
     }
 
-    private void setTaskPostDto() {
+    private void setTaskCreateDto() {
         taskCreateDto = new TaskCreateDto();
         taskCreateDto.setTitle("Title");
         taskCreateDto.setDescription("Description");
         taskCreateDto.setStatus("Done");
-        taskCreateDto.setEmail("email@ukr.net");
     }
 
-    private void setTaskPutDto() {
+    private void setTaskUpdateDto() {
         taskUpdateDto = new TaskUpdateDto();
         taskUpdateDto.setTitle("title0");
         taskUpdateDto.setEmail("email@ukr.net");

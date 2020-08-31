@@ -13,7 +13,7 @@ Managing tasks through API
 Without being authenticated you can register and login. Here is the list of what you can do being authenticated:
 
 1. Update user's data
-2. Delete user
+2. Delete user(With admin role you can delete any user, with user role you can delete only yourself)
 3. Get user data
 4. Get list of all users
 5. Create task

@@ -11,6 +11,4 @@ public class TaskCreateDto {
     private String description;
     @NotBlank(message = "Status can't be null or blank!")
     private String status;
-    @NotBlank(message = "Email can't be null or blank!")
-    private String email;
 }

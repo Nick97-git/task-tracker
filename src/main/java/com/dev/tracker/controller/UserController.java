@@ -3,7 +3,6 @@ package com.dev.tracker.controller;
 import com.dev.tracker.mapper.UserMapper;
 import com.dev.tracker.model.User;
 import com.dev.tracker.model.dto.user.UserDeleteDto;
-import com.dev.tracker.model.dto.user.UserGetDto;
 import com.dev.tracker.model.dto.user.UserGetResponseDto;
 import com.dev.tracker.model.dto.user.UserResponseDto;
 import com.dev.tracker.model.dto.user.UserUpdateDto;
@@ -43,14 +42,15 @@ public class UserController {
     }
 
     @GetMapping("/user")
-    public UserGetResponseDto getUser(@RequestBody @Valid UserGetDto userGetDto) {
-        User user = userService.findByEmail(userGetDto.getEmail());
+    public UserGetResponseDto getUser(Authentication authentication) {
+        User user = userService.findByEmail(authentication.getName());
         return userMapper.convertUserToUserGetResponseDto(user);
     }
 
     @PutMapping
-    public UserResponseDto updateUser(@RequestBody @Valid UserUpdateDto userUpdateDto) {
-        User user = userService.findByEmail(userUpdateDto.getEmail());
+    public UserResponseDto updateUser(@RequestBody @Valid UserUpdateDto userUpdateDto,
+                                      Authentication authentication) {
+        User user = userService.findByEmail(authentication.getName());
         User updatedUser = userMapper.convertUserPutDtoToUser(user, userUpdateDto);
         return userMapper.convertUserToUserResponseDto(userService.save(updatedUser));
     }
